@@ -135,23 +135,48 @@ module "eks" {
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
-   addons = {
-    vpc-cni = {
-      most_recent = true
+  node_security_group_additional_rules = {
+    ingress_self_all = {
+      description = "Node to node all ports/protocols"
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "ingress"
+      self        = true
     }
-    kube-proxy = {
-      most_recent = true
-    }
-    coredns = {
-      most_recent = true
+    
+    ingress_cluster_to_node_all_traffic = {
+      description                   = "Cluster to node all traffic"
+      protocol                      = "-1"
+      from_port                     = 0
+      to_port                       = 0
+      type                          = "ingress"
+      source_cluster_security_group = true
     }
 
+    egress_all = {
+      description = "Node all egress"
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "egress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  }
+
+   addons = {
     eks-pod-identity-agent = {
       most_recent = true
+      before_compute = true
     }
-
     aws-ebs-csi-driver = {
       most_recent = true
+    }
+    coredns = {}
+    kube-proxy = {}
+    vpc-cni = {
+      most_recent = true
+      before_compute = true
     }
   }
 
