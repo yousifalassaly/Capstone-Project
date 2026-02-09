@@ -6,8 +6,8 @@ terraform {
 
   backend "s3" {
     # Pass bucket at init: terraform init -backend-config="bucket=YOUR_BUCKET"
-    key     = "state/monitoring-lab/terraform.tfstate"
-    region  = "us-east-1"
+    key     = "state/Capstone-Project/terraform.tfstate"
+    region  = "us-west-1"
     encrypt = true
   }
 
@@ -23,11 +23,11 @@ terraform {
 # Variables
 ########################
 variable "region" {
-  default = "us-east-1"
+  default = "us-west-1"
 }
 
 variable "cluster_name" {
-  default = "monitoring-lab"
+  default = "Capstone-Project"
 }
 
 ########################
