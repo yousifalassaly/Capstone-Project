@@ -53,7 +53,7 @@ locals {
   cluster_name = var.cluster_name
   vpc_name     = "${var.cluster_name}-vpc"
 
-  az_count = min(3, length(data.aws_availability_zones.available.names))
+  az_count = min(2, length(data.aws_availability_zones.available.names))
   azs      = slice(data.aws_availability_zones.available.names, 0, local.az_count)
 
   private_subnets = slice(
