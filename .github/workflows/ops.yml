@@ -1,53 +1,36 @@
-name: Release and Deploy
+name: Build and Push Docker Image
 
 on:
   push:
-    tags:
-      - 'v*'
     paths:
-      - 'apps/orchestrator/**'  # Only trigger on changes in the orchestrator folder
+      - 'apps/orchestrator/**'  # Only trigger on changes in orchestrator folder
   workflow_dispatch:
-    inputs:
-      tag_name:
-        description: "Docker / release tag (e.g. v1.2.3)"
-        required: true
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout the repo
+      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Set the TAG_NAME environment variable
-      - name: Set TAG_NAME
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "TAG_NAME=${{ inputs.tag_name }}" >> $GITHUB_ENV
-          else
-            # For tag pushes, github.ref_name is the tag
-            echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
-
-      # 3. Set up Docker Buildx for advanced builds
+      # 2. Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 4. Log in to Docker Hub
+      # 3. Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.REGISTRY_USER }}
           password: ${{ secrets.REGISTRY_TOKEN }}
 
-      # 5. Build and push the Docker image
+      # 4. Build and push the Docker image
       - name: Build and Push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./apps/orchestrator          # The folder containing your Dockerfile
-          file: ./apps/orchestrator/Dockerfile # Explicit path to the Dockerfile
+          context: ./apps/orchestrator
+          file: ./apps/orchestrator/Dockerfile
           push: true
-          tags: docker.io/${{ secrets.REGISTRY_USER }}/PlatformAPI:${{ env.TAG_NAME }}
-          build-args: |
-            APP_VERSION=${{ env.TAG_NAME }}
+          tags: docker.io/${{ secrets.REGISTRY_USER }}/PlatformAPI
