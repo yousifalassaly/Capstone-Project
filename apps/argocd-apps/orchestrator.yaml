@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orchestrator
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    # Adjust repoURL to point to your fork of this repository
+    repoURL: https://github.com/aguajosh/Capstone-Project.git
+    targetRevision: HEAD
+    path: apps/orchestrator
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: orchestrator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

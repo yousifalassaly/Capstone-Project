@@ -1,0 +1,5 @@
+- hosts: legacy
+  gather_facts: false
+  tasks:
+    - name: run batch job
+      command: /opt/batch/run.sh

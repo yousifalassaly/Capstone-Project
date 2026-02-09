@@ -1,0 +1,7 @@
+- hosts: legacy
+  gather_facts: false
+  tasks:
+    - name: deploy fixed configuration
+      copy:
+        src: fixed.conf
+        dest: /opt/batch/config.conf

@@ -1,0 +1,18 @@
+.terraform/
+*.tfstate
+*.tfstate.backup
+errored.tfstate
+
+# Terraform (do not commit)
+apps/terraform/
+apps/S3-terraform/
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+errored.tfstate
+.terraform.lock.hcl
+apps/legacy-batch/
