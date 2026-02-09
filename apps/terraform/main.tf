@@ -5,7 +5,6 @@ terraform {
   required_version = ">= 1.6.0"
 
   backend "s3" {
-    # Pass bucket at init: terraform init -backend-config="bucket=YOUR_BUCKET"
     key     = "state/capstone-project/terraform.tfstate"
     region  = "us-west-1"
     encrypt = true
@@ -37,8 +36,9 @@ provider "aws" {
   region = var.region
 }
 
-# Filter out local zones, which are not currently supported 
-# with managed node groups
+########################
+# Availability Zones
+########################
 data "aws_availability_zones" "available" {
   filter {
     name   = "opt-in-status"
@@ -46,9 +46,27 @@ data "aws_availability_zones" "available" {
   }
 }
 
+########################
+# Locals (AZ-safe)
+########################
 locals {
   cluster_name = var.cluster_name
   vpc_name     = "${var.cluster_name}-vpc"
+
+  az_count = min(2, length(data.aws_availability_zones.available.names))
+  azs      = slice(data.aws_availability_zones.available.names, 0, local.az_count)
+
+  private_subnets = slice(
+    ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"],
+    0,
+    local.az_count
+  )
+
+  public_subnets = slice(
+    ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"],
+    0,
+    local.az_count
+  )
 }
 
 ########################
@@ -59,12 +77,11 @@ module "vpc" {
   version = "5.8.1"
 
   name = local.vpc_name
-
   cidr = "10.0.0.0/16"
-  azs  = slice(data.aws_availability_zones.available.names, 0, 3)
 
-  private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
-  public_subnets  = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+  azs             = local.azs
+  private_subnets = local.private_subnets
+  public_subnets  = local.public_subnets
 
   enable_nat_gateway   = true
   single_nat_gateway   = true
@@ -80,7 +97,7 @@ module "vpc" {
 }
 
 ########################
-# Security Group - Lab (Open All)
+# Security Group (LAB)
 ########################
 resource "aws_security_group" "allow_all" {
   name        = "${local.cluster_name}-allow-all"
@@ -88,7 +105,6 @@ resource "aws_security_group" "allow_all" {
   vpc_id      = module.vpc.vpc_id
 
   ingress {
-    description = "All inbound"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -96,15 +112,10 @@ resource "aws_security_group" "allow_all" {
   }
 
   egress {
-    description = "All outbound"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${local.cluster_name}-allow-all"
   }
 }
 
@@ -124,56 +135,41 @@ module "eks" {
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
-  # NOTE: Your explicit SG resource is created above, but the EKS module
-  # uses its own security groups unless you explicitly pass IDs in.
-  # These rules still apply to the module-managed SGs.
-  security_group_additional_rules = {
-    ingress_all = {
-      description = "All inbound - LAB ONLY"
-      protocol    = "-1"
-      from_port   = 0
-      to_port     = 0
-      type        = "ingress"
-      cidr_blocks = ["0.0.0.0/0"]
+   addons = {
+    vpc-cni = {
+      most_recent = true
     }
-  }
-
-  node_security_group_additional_rules = {
-    ingress_all = {
-      description = "All inbound - LAB ONLY"
-      protocol    = "-1"
-      from_port   = 0
-      to_port     = 0
-      type        = "ingress"
-      cidr_blocks = ["0.0.0.0/0"]
+    kube-proxy = {
+      most_recent = true
     }
-  }
+    coredns = {
+      most_recent = true
+    }
 
-  # Addons - set AFTER IRSA role exists
-  addons = {
     eks-pod-identity-agent = {
       most_recent = true
     }
+
     aws-ebs-csi-driver = {
       service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
     }
   }
 
   eks_managed_node_groups = {
-    one = {
+    main = {
       name           = "capstone-node-group"
-      ami_type       = "AL2023_x86_64_STANDARD"
       instance_types = ["t3.large"]
+      ami_type       = "AL2023_x86_64_STANDARD"
 
-      min_size     = 3
-      max_size     = 3
-      desired_size = 3
+      min_size     = local.az_count
+      max_size     = local.az_count
+      desired_size = local.az_count
     }
   }
 }
 
 ########################
-# IRSA for EBS CSI
+# IRSA (EBS CSI)
 ########################
 data "aws_iam_policy" "ebs_csi_policy" {
   arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
@@ -197,11 +193,6 @@ output "cluster_name" {
   value = module.eks.cluster_name
 }
 
-output "cluster_endpoint" {
-  value = module.eks.cluster_endpoint
-}
-
 output "configure_kubectl" {
-  description = "Run this command to configure kubectl"
-  value       = "aws eks update-kubeconfig --region ${var.region} --name ${module.eks.cluster_name}"
+  value = "aws eks update-kubeconfig --region ${var.region} --name ${module.eks.cluster_name}"
 }
