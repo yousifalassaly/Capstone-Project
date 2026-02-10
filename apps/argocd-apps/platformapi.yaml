@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: orchestrator
+  name: platformapi
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -14,7 +14,7 @@ spec:
     path: apps/platformapi
   destination:
     server: https://kubernetes.default.svc
-    namespace: orchestrator
+    namespace: platformapi
   syncPolicy:
     automated:
       prune: true
