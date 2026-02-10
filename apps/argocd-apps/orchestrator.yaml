@@ -10,7 +10,7 @@ spec:
   source:
     # Adjust repoURL to point to your fork of this repository
     repoURL: https://github.com/yousifalassaly/Capstone-Project.git
-    targetRevision: "main"
+    targetRevision: MAIN
     path: apps/orchestrator
   destination:
     server: https://kubernetes.default.svc
