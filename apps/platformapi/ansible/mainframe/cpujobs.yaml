@@ -1,0 +1,25 @@
+---
+- name: z/OS CPU Monitoring
+  hosts: zos
+  gather_facts: false
+  collections:
+    - ibm.ibm_zos_core
+  environment: "{{ environment_vars }}"
+
+  tasks:
+
+    # ----------------------------
+    # Address space CPU usage
+    # ----------------------------
+    - name: Display address space CPU usage
+      zos_operator:
+        cmd: "D A,ALL"
+      register: address_space_cpu
+      ignore_errors: true
+
+    # ----------------------------
+    # Display outputs
+    # ----------------------------
+    - name: Show address space CPU
+      debug:
+        msg: "{{ address_space_cpu.content | default('Command not permitted or no data') }}"
