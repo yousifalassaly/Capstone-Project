@@ -1,12 +1,10 @@
 all:
+  vars:
+    ansible_user: ec2-user
+    ansible_ssh_private_key_file: /home/app/.ssh/id_rsa
+    ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
   children:
     platformapi:
-      vars:
-        ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
       hosts:
         18.144.29.14:
-          ansible_user: ec2-user
-          ansible_ssh_private_key_file: /home/app/.ssh/id_rsa
         50.18.130.21:
-          ansible_user: ec2-user
-          ansible_ssh_private_key_file: /home/app/.ssh/id_rsa
