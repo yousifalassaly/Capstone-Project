@@ -24,7 +24,7 @@ prometheus:
     serverFiles:
       prometheus.yml:
         scrape_configs:
-          - job_name: linux-nodes
+          - job_name: "linux-nodes"
             static_configs:
               - targets:
                   - 18.144.29.14:9100
