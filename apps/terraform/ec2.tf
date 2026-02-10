@@ -35,7 +35,7 @@ data "aws_ami" "amazon_linux2" {
 
 	filter {
 		name   = "name"
-		values = ["al2023-ami-*-x86_64*"]
+		values = ["l2023-ami-2023.10.20260202.2-kernel-6.12-x86_64-gp2"]
 	}
 }
 
