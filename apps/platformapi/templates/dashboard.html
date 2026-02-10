@@ -25,4 +25,38 @@ h1 { margin-top:0 }
     </ul>
   </div>
 
+  <div class="card">
+   <h3>Ansible — Ping Targets</h3>
+   <p>Targets: <span id="targets">{{ targets | join(', ') }}</span></p>
+   <button id="run-ansible">Run Ansible Ping</button>
+   <pre id="ansible-output"
+    style="white-space:pre-wrap; margin-top:12px; background:#071027; padding:12px; border-radius:6px; color:#cfe7ff"></pre>
+  </div>
+  
+  <script>
+   const runBtn = document.getElementById('run-ansible');
+   const out = document.getElementById('ansible-output');
+   const targetsText = document.getElementById('targets').innerText || '';
+   const defaultHosts = targetsText.split(',').map(s => s.trim()).filter(Boolean);
+
+   runBtn.addEventListener('click', async () => {
+    out.textContent = 'Running ansible ping...';
+    try {
+     const resp = await fetch('/ansible/ping', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hosts: defaultHosts })
+     });
+     const data = await resp.json();
+     if (data.success) {
+      out.textContent = data.stdout || '(no stdout)';
+     } else {
+      out.textContent = data.error || data.stderr || JSON.stringify(data, null, 2);
+     }
+    } catch (err) {
+     out.textContent = 'Request failed: ' + err.message;
+    }
+   });
+  </script>
+
 {% endblock %}

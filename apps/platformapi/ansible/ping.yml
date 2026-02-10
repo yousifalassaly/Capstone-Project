@@ -1,0 +1,12 @@
+---
+- name: Ping target hosts
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Ping
+      ping:
+      register: ping_result
+
+    - name: Show ping result
+      debug:
+        var: ping_result
