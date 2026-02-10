@@ -11,15 +11,12 @@ all:
       hosts:
         18.144.29.14:
         50.18.130.21:
-          ansible_user: ec2-user
-          ansible_ssh_private_key_file: /home/app/.ssh/id_rsa
-
 
     zos:
-        hosts:
-          mainframe:
-            ansible_host: 67.217.62.83
-        vars:
-          ansible_user: IBMUSER
-          ansible_ssh_private_key_file: /home/app/.ssh/mainframe/mainframe_id_rsa
-          ansible_python_interpreter: /usr/lpp/IBM/cyp/v3r11/pyz/bin/python
+      vars:
+        ansible_user: IBMUSER
+        ansible_ssh_private_key_file: /home/app/.ssh/mainframe/mainframe_id_rsa
+        ansible_python_interpreter: /usr/lpp/IBM/cyp/v3r11/pyz/bin/python
+      hosts:
+        mainframe:
+          ansible_host: 67.217.62.83
