@@ -2,15 +2,6 @@
 # Chart: prometheus 27.0.0
 
 prometheus:
-
-  serverFiles:
-      prometheus.yml:
-        scrape_configs:
-          - job_name: "linux-nodes"
-            static_configs:
-             - targets:
-                 - 18.144.29.14:9100
-                 - 50.18.130.21:9100
   # Disable components we don't need
   alertmanager:
     enabled: false
@@ -35,9 +26,9 @@ prometheus:
         scrape_configs:
           - job_name: "linux-nodes"
             static_configs:
-             - targets:
-                 - 18.144.29.14:9100
-                 - 50.18.130.21:9100
+              - targets:
+                  - 18.144.29.14:9100
+                  - 50.18.130.21:9100
 
     # Enable remote write receiver for Alloy/Tempo
     extraFlags:
