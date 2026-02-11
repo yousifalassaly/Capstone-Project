@@ -7,6 +7,7 @@ import re
 from typing import Dict, Optional
 import time
 import uuid
+import os
 from collections import deque
 
 # ---- Prometheus ----
@@ -171,16 +172,30 @@ def parse_play_recap(output: str):
     return summary
 
 
-def _run_ansible_playbook(*, playbook: str, limit: Optional[str] = None):
+def _run_ansible_playbook(*, playbook: str, limit: Optional[str] = None) -> Dict:
     if not INVENTORY_FILE.exists():
-        return {"success": False, "error": "Inventory not found"}
+        return {"success": False, "error": f"Inventory not found at {INVENTORY_FILE}"}
 
     cmd = ["ansible-playbook", "-i", str(INVENTORY_FILE), playbook]
     if limit:
         cmd.extend(["--limit", limit])
 
+    # If the playbook lives under ansible/mainframe, tell Ansible to use that config.
+    # We use the container path /app/ansible/mainframe/ansible.cfg as requested.
+    env = None
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+        pb_path = Path(playbook)
+        mainframe_dir = BASE_DIR / "ansible" / "mainframe"
+        # Use string containment to avoid resolve() failures on missing files
+        if str(mainframe_dir) in str(pb_path.parent):
+            env = os.environ.copy()
+            env["ANSIBLE_CONFIG"] = "/app/ansible/mainframe/ansible.cfg"
+    except Exception:
+        # If anything goes wrong detecting, continue without special env.
+        env = None
+
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180, env=env)
         return {
             "success": proc.returncode == 0,
             "returncode": proc.returncode,
@@ -189,8 +204,14 @@ def _run_ansible_playbook(*, playbook: str, limit: Optional[str] = None):
             "cmd": " ".join(cmd),
             "play_summary": parse_play_recap(proc.stdout),
         }
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    except FileNotFoundError:
+        return {"success": False, "error": "ansible-playbook binary not found in PATH."}
+    except subprocess.TimeoutExpired:
+        return {"success": False, "error": "Ansible command timed out"}
+
+
+
+
 
 # ============================================================
 # ------------------ ACTION EXECUTION ------------------------
