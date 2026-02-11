@@ -33,6 +33,12 @@ ACTIONS: Dict[str, Dict[str, str]] = {
         "playbook": str(BASE_DIR / "ansible" / "ping.yml"),
         "limit": "platformapi",
     },
+    "httpd_restart": {
+        "label": "Restart HTTPD on EC2 targets",
+        "description": "Runs Ansible playbook to restart HTTPD service on the EC2 targets in inventory.yml (group: platformapi).",
+        "playbook": str(BASE_DIR / "ansible" / "httpdrestart.yml"),
+        "limit": "platformapi",
+    },
     "zos_ping": {
         "label": "Ping z/OS host",
         "description": "Runs IBM z/OS ping playbook against the mainframe host.",
