@@ -3,3 +3,4 @@ uvicorn
 requests
 jinja2
 python-multipart
+prometheus-client==0.20.0
