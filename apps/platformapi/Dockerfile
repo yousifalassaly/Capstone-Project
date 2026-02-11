@@ -21,6 +21,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install Ansible
+RUN pip install --no-cache-dir ansible
 RUN pip install --no-cache-dir "ansible-core==2.15.3"
 
 # Install specific Ansible Galaxy collection
