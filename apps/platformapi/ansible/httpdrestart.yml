@@ -1,28 +1,16 @@
 ---
-- name: Restart HTTP/Apache service on target hosts
+- name: Restart httpd service and debug status
   hosts: all
   become: true
-  gather_facts: true
-
-  vars:
-    # default service name (RHEL/CentOS/Amazon Linux)
-    httpd_service_name: "httpd"
+  gather_facts: false 
 
   tasks:
-    - name: Use Debian service name on Debian/Ubuntu
-      set_fact:
-        httpd_service_name: "apache2"
-      when: ansible_facts['os_family'] == "Debian"
-
-    - name: Ensure the HTTP service is restarted and enabled
+    - name: Restart Apache HTTPD service
       ansible.builtin.service:
-        name: "{{ httpd_service_name }}"
+        name: httpd
         state: restarted
-        enabled: true
+      register: httpd_restart_status # Register the result of the task to a variable
 
-    - name: Report service status
-      ansible.builtin.service_facts:
-      # subsequent debug will show status for the selected service
-    - name: Show resulting status for the http service
+    - name: Display httpd restart status for debugging
       ansible.builtin.debug:
-        msg: "{{ ansible_facts.services[httpd_service_name] | default('service not found') }}"
+        var: httpd_restart_status
