@@ -30,7 +30,7 @@ RUN ansible-galaxy collection install ibm.ibm_zos_core:1.8.0
 COPY . .
 
 # Expose the HTTP port
-EXPOSE 80000
+EXPOSE 8000
 
 # Start the FastAPI application
 CMD ["uvicorn", "main:app", "--host=0.0.0.0", "--port=8000"]
