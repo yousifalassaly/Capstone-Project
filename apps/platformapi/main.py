@@ -61,6 +61,12 @@ ACTIONS: Dict[str, Dict[str, str]] = {
         "playbook": str(BASE_DIR / "ansible" / "mainframe" / "cpujobs.yaml"),
         "limit": "zos",
     },
+    "zos_submit_jcl": {
+        "label": "Submit JCL to z/OS",
+        "description": "Runs a z/OS playbook to submit JCL.",
+        "playbook": str(BASE_DIR / "ansible" / "mainframe" / "submit_jcl.yaml"),
+        "limit": "zos",
+    },
 }
 
 RUNS: "deque[Dict]" = deque(maxlen=50)
@@ -97,6 +103,12 @@ IN_PROGRESS_RUNS = Gauge(
     "platformapi_action_runs_in_progress",
     "Number of action runs currently executing",
 )
+
+ZOS_UP = Gauge(
+    "platformapi_zos_up",
+    "Whether the z/OS host is reachable (1 = up, 0 = down)",
+)
+
 
 # ============================================================
 # ---------------- HTTP METRICS MIDDLEWARE -------------------
@@ -202,6 +214,10 @@ def execute_action(action: str, scheduled: bool = False):
     finished = time.time()
     duration = finished - started
     success = bool(result.get("success"))
+
+    # Set availability for zos_ping
+    if action == "zos_ping":
+        ZOS_UP.set(1 if success else 0)
 
     ACTION_RUN_DURATION.labels(action=action).observe(duration)
     ACTION_RUNS_TOTAL.labels(
