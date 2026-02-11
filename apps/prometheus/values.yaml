@@ -25,7 +25,7 @@ prometheus:
     - job_name: "platformapi"
       static_configs:
         - targets:
-            - aaec988c6bd1d4b1d93e8f170648405c-783298805.us-west-1.elb.amazonaws.com:80
+            - a355695c8ce2f47b58107f4c0d227e42-753025527.us-west-1.elb.amazonaws.com:80
 
   # Prometheus server
   server:
